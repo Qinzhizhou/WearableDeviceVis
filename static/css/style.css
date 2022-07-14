@@ -1,0 +1,22 @@
+.mainbox {
+  display: flex;
+  min-width: 1024px;
+  height: 30rem;
+
+  max-height: 1920px;
+  margin: 0 auto;
+  padding: 0.125rem 0.125rem 0;
+  background-color: pink;
+}
+
+.leftside {
+  background-color: yellow;
+  width: 50%;
+  height:460px;
+}
+
+.rightside  {
+  background-color: blue;
+  width: 50%;
+  height:400px;
+}
