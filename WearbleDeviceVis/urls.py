@@ -16,10 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from VisApp import views
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     path('', views.index, name = 'index'),
     path('index', views.index, name = 'index'),
     path('upload', views.upload, name = 'upload'),
-    path('results', views.results, name = 'results')
+    path('results_living', views.results_living, name = 'results_living'),
+    path('results_threadmill', views.results_thread, name = 'results_thread'),
+    path('renew', views.renew, name = 'renew'),
+    path('renew_pread', views.renew_pread, name='renew_pread')
 ]

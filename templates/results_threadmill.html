@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!DOCTYPE html>
+    <meta charset="utf-8" />
+     <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/style.css' %}">
+    <title>Dashboard Results of Threadmill Results </title>
+</head>
+<body>
+<p> The type of experiment is threadmill data </p>
+
+<form method="POST" action = "{% url 'renew_pread' %}">
+    {% csrf_token %}
+    Select the day of experiment:
+    <select name="typeid">
+    <option value="Heart Rate">Heart Rate</option>
+    <option value='Steps'>Step 1</option>
+    <option value="Steps2">Step 2</option>
+    <option value='Calories'>Calories 1</option>
+    <option value="Calories 2">Calories 2</option>
+
+    </select>
+<input type="submit" value="click">
+</form>
+
+<section class = 'mainbox'>
+    <div class="leftside" id="chart1"></div>
+    <div class="rightside" id="chart2"></div>
+</section>
+<script>
+    var chartDom = document.getElementById('chart1');
+    var myChart = echarts.init(chartDom);
+    var option;
+    option = {
+        color: ['#FF0087', '#00DDFF', '#37A2FF', '#80FFA5'],
+        dataZoom: [
+    {
+      type: 'inside',
+      start: 0,
+      end: 10
+    }, {
+      start: 0,
+      end: 10
+    }
+  ],
+
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  legend: {
+    data:  ['GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge']
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '10%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: {{ timelines|safe }},
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
+  series: [
+    {
+      name: 'GT',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(255, 0, 135)'
+          },
+          {
+            offset: 0.6,
+            color: 'rgb(135, 0, 157)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vA|safe }}
+    },
+    {
+      name: 'Fitbit Charge HR',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(0, 221, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(77, 119, 255)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vB|safe }}
+    },
+    {
+      name:  'Fitbit Charge 2',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(55, 162, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(116, 21, 219)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vC|safe }}
+    },
+    {
+      name: 'Fitbit Surge',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.2,
+           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0.5,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data:  {{ vD|safe }}
+    }
+  ]
+};
+
+option && myChart.setOption(option);
+
+</script>
+
+<!-- how to seperate js file in to static file? <script type= 'text/javascript' src="{% static '/js/freeliving.js' %}"></script>-->
+
+{% block messages %}
+            {% if messages %}
+                <div class = 'container' style="color: firebrick; margin-top: 20px">
+            {% for message in messages %}
+                {{ message  }}
+            {% endfor %}
+                </div>
+            {% endif %}
+        {% endblock %}
+<button class="btn"> <a href="{% url 'index' %}"> GO BACK</a></button>
+</body>
+</html>
+

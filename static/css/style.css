@@ -12,11 +12,11 @@
 .leftside {
   background-color: yellow;
   width: 50%;
-  height:460px;
+  height:400px;
 }
 
 .rightside  {
-  background-color: blue;
+  background-color: lavender;
   width: 50%;
   height:400px;
 }
