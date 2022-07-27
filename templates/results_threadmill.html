@@ -20,7 +20,7 @@
     <option value='Steps'>Step 1</option>
     <option value="Steps2">Step 2</option>
     <option value='Calories'>Calories 1</option>
-    <option value="Calories 2">Calories 2</option>
+    <option value="Calories2">Calories 2</option>
 
     </select>
 <input type="submit" value="click">
@@ -30,6 +30,7 @@
     <div class="leftside" id="chart1"></div>
     <div class="rightside" id="chart2"></div>
 </section>
+
 <script>
     var chartDom = document.getElementById('chart1');
     var myChart = echarts.init(chartDom);
@@ -40,10 +41,10 @@
     {
       type: 'inside',
       start: 0,
-      end: 10
+      end: 100
     }, {
       start: 0,
-      end: 10
+      end: 100
     }
   ],
 
@@ -195,6 +196,95 @@
 };
 
 option && myChart.setOption(option);
+</script>
+
+
+<script>
+var chartDom2 = document.getElementById('chart2');
+var myChart2 = echarts.init(chartDom2);
+var option2;
+
+// prettier-ignore
+var hours = {{ timelines|safe }};
+// prettier-ignore
+var days = ['GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge'];
+// prettier-ignore
+var va = {{ vA|safe }};
+var vb = {{ vB|safe }};
+var vc = {{ vC|safe }};
+var vd = {{ vD|safe }};
+var na = {{ nA|safe }};
+var nb = {{ nB|safe }};
+var nc = {{ nC|safe }};
+var nd = {{ nD|safe }};
+
+
+var data = [];
+for (let i = 0; i < hours.length; i++) {
+  data.push([0,i,va[i], na[i]]);
+  data.push([1,i,vb[i], nb[i]]);
+  data.push([2,i,vc[i], nc[i]]);
+  data.push([3,i,vd[i], nd[i]]);
+
+}
+
+
+const title = [];
+var singleAxis = [];
+var series = [];
+
+days.forEach(function (day, idx) {
+  title.push({
+    textBaseline: 'middle',
+    top: ((idx + 0.5) * 100) / 7 + '%',
+    text: day
+  });
+
+  singleAxis.push({
+    left: 150,
+    type: 'category',
+    boundaryGap: false,
+    data: hours,
+    top: (idx * 120) / 7 + 5 + '%',
+    height: 120 / 7 - 10 + '%',
+  });
+  series.push({
+    singleAxisIndex: idx,
+    coordinateSystem: 'singleAxis',
+    type: 'scatter',
+    data: [],
+    symbolSize: function (dataItem) {
+      return dataItem[1] * 31;
+        // return dataItem[1].map(normalization)
+    }
+  });
+});
+data.forEach(function (dataItem) {
+  series[dataItem[0]].data.push([dataItem[1], dataItem[3]]); // normalize
+});
+
+
+option2 = {
+
+  tooltip: {
+      position: 'top',
+      trigger: 'axis',
+  },
+    toolbox: {
+    feature: {
+        dataZoom: {yAxisIndex: 'none'
+        }
+    },
+      restore: {},
+      saveAsImage: {}
+    },
+  title: title,
+  singleAxis: singleAxis,
+
+  series: series,
+};
+
+option2 && myChart2.setOption(option2);
 
 </script>
 

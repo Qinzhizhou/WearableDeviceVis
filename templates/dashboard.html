@@ -3,6 +3,9 @@
 <title>Welcome to Visual Data analytics Tools for Wearable Devices</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+{% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/style.css' %}">
 <body>
 
 <!-- Sidebar -->
@@ -10,8 +13,9 @@
   <button class="w3-bar-item w3-button w3-xxlarge" onclick="w3_close()">Close &times;</button>
      <a href="index" class="w3-bar-item w3-button">Index</a>
      <a href="upload" class="w3-bar-item w3-button">Upload</a>
-     <a href="dashboard" class="w3-bar-item w3-button">Dashboard</a>
      <a href="compare" class="w3-bar-item w3-button">Compare</a>
+     <a href="dashboard" class="w3-bar-item w3-button">Dashboard</a>
+     <a href="#" class="w3-bar-item w3-button">Analysis</a>
 </div>
 
 <!-- Page Content -->
@@ -20,10 +24,16 @@
 <div>
   <button class="w3-button w3-white w3-xxlarge" onclick="w3_open()">&#9776;</button>
   <div class="w3-container">
-    <h1>Welcome to Visual Data analytics Tools for Wearable Devices</h1>
-    <p>Click on the "menu" to see more functions</p>
+    <h1>Dashboard</h1>
+
+<section class = 'dashboard'>
+        <div class="leftside_dash" id="chart1"></div>
+        <div class="rightside_dash" id="chart2"></div>
+</section>
+      <div class="bottom" id=" bar"></div>
+    </div>
   </div>
-</div>
+
 
 <script>
 function w3_open() {

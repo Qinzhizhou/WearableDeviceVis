@@ -87,6 +87,11 @@ def results_living(request):
     valuesA = data.A
     timelines = []
     vA, vB, vC, vD, vE   = addY(data.A),  addY(data.B),  addY(data.C),  addY(data.D),  addY(data.E)
+    nA = normalize_list(vA)
+    nB = normalize_list(vB)
+    nC = normalize_list(vC)
+    nE = normalize_list(vE)
+    nD = normalize_list(vD)
     for x in keys:
         timelines.append(str(x))
     context = {
@@ -96,8 +101,12 @@ def results_living(request):
     'vC': vC,
     'vD': vD,
     'vE': vE,
+    'nA': nA,
+    'nB': nB,
+    'nC': nC,
+    'nD': nD,
+    'nE': nE,
     }
-    #print(data[attribute])
     print("loading image")
     return render(request, "results_freeliving.html", context)
 
@@ -114,7 +123,11 @@ def results_thread(request):
 
     timelines = []
     vA, vB, vC, vD = addY(data.GT),  addY(data['Fitbit Charge HR']),  addY(data['Fitbit Charge 2']),  addY(data['Fitbit Surge'])
-
+    nA = normalize_list(vA)
+    nB = normalize_list(vB)
+    nC = normalize_list(vC)
+    nD = normalize_list(vD)
+    print(nA)
     for x in keys:
         timelines.append(str(x))
 
@@ -124,10 +137,25 @@ def results_thread(request):
     'vB': vB,
     'vC': vC,
     'vD': vD,
+        'nA': nA,
+        'nB': nB,
+        'nC': nC,
+        'nD': nD,
     }
     #print(data[attribute])
     print("loading image")
     return render(request, "results_threadmill.html", context)
+
+def normalize_list(list):
+    max_value = max(list)
+    min_value = min(list)
+    norm_list = []
+    if max_value - min_value == 0:
+        norm_list.append(0)
+    else:
+        for i in range(0, len(list)):
+            norm_list.append((list[i] - min_value) / (max_value - min_value))
+    return norm_list
 
 def renew(request):
     global rows, cols, data, my_file, missing_values
@@ -156,6 +184,11 @@ def renew(request):
     keys = data.Time
     timelines = []
     vA, vB, vC, vD, vE = addY(data.A), addY(data.B), addY(data.C), addY(data.D), addY(data.E)
+    nA = normalize_list(vA)
+    nB = normalize_list(vB)
+    nC = normalize_list(vC)
+    nE = normalize_list(vE)
+    nD = normalize_list(vD)
     for x in keys:
         timelines.append(str(x))
     context = {
@@ -165,9 +198,15 @@ def renew(request):
         'vC': vC,
         'vD': vD,
         'vE': vE,
+        'nA': nA,
+        'nB': nB,
+        'nC': nC,
+        'nD': nD,
+        'nE': nE,
     }
     # print(data[attribute])
     print("loading image")
+    print(nA)
     return render(request, "results_freeliving.html", context)
 
 def pread_living(filename, request):
@@ -214,16 +253,33 @@ def renew_pread(request):
     timelines = []
     vA, vB, vC, vD = addY(data.GT), addY(data['Fitbit Charge HR']), addY(data['Fitbit Charge 2']), addY(
         data['Fitbit Surge'])
+    nA = normalize_list(vA)
+    nB = normalize_list(vB)
+    nC = normalize_list(vC)
+    nD = normalize_list(vD)
 
     for x in keys:
         timelines.append(str(x))
+
     context = {
         'timelines': timelines,
         'vA': vA,
         'vB': vB,
         'vC': vC,
         'vD': vD,
+        'nA': nA,
+        'nB': nB,
+        'nC': nC,
+        'nD': nD,
     }
+
+
     # print(data[attribute])
     print("loading image")
     return render(request, "results_threadmill.html", context)
+
+def dashboard(request):
+    return render(request, "dashboard.html")
+
+def compare(request):
+    return render(request, "compare.html")

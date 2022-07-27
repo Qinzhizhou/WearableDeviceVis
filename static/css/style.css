@@ -2,12 +2,22 @@
   display: flex;
   min-width: 1024px;
   height: 30rem;
-
   max-height: 1920px;
   margin: 0 auto;
   padding: 0.125rem 0.125rem 0;
   background-color: pink;
 }
+
+.dashboard {
+  display: flex;
+  min-width: 1024px;
+  height: 30rem;
+  max-height: 1920px;
+  margin: 0 auto;
+  padding: 0.125rem 0.125rem 0;
+  background-color: pink;
+}
+
 
 .leftside {
   background-color: yellow;
@@ -19,4 +29,26 @@
   background-color: lavender;
   width: 50%;
   height:400px;
+}
+
+.leftside_dash {
+  background-color: yellow;
+  width: 50%;
+  height:400px;
+}
+.rightside_dash  {
+  background-color: lavender;
+  width: 50%;
+  height:400px;
+}
+
+
+.bottom {
+  background-color: lightgrey;
+  position: absolute;
+  height: 200px;
+  width: 90%;
+  bottom: 0;
+  border: 3px solid #8AC007;
+
 }
