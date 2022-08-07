@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html>
-<title>Welcome to Visual Data analytics Tools for Wearable Devices</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Data Page</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
 <body>
 
 <!-- Sidebar -->
@@ -10,21 +14,53 @@
   <button class="w3-bar-item w3-button w3-xxlarge" onclick="w3_close()">Close &times;</button>
      <a href="index" class="w3-bar-item w3-button">Index</a>
      <a href="upload" class="w3-bar-item w3-button">Upload</a>
-     <a href="dashboard" class="w3-bar-item w3-button">Dashboard</a>
+     <a href="#" class="w3-bar-item w3-button">Dashboard</a>
      <a href="compare" class="w3-bar-item w3-button">Compare</a>
 </div>
 
 <!-- Page Content -->
 <div class="w3-overlay" onclick="w3_close()" style="cursor:pointer" id="myOverlay"></div>
-
 <div>
   <button class="w3-button w3-white w3-xxlarge" onclick="w3_open()">&#9776;</button>
-  <div class="w3-container">
-    <h1>Welcome to Visual Data analytics Tools for Wearable Devices</h1>
-    <p>You can compare the different experiment here</p>
-  </div>
-</div>
 
+<h1 style =" margin-top: 10px; padding: 30px "> Compare </h1>
+<div class="container card" style =" margin-top: 50px; padding: 30px ";>
+       <p> Your can upload individual experiment data on this page in xlxs file in FreeLiving and Threadmead experiment </p>
+        <div class="content">
+            <h1>Please uploaded experiment data file</h1>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row content">
+                    <label for="files">Select files:</label>
+                    <input type="file" id="files" name="files" multiple required = 'required'><br><br>
+
+                    <div class="col">
+                             <p id="id"> Select the experiment type: </p>
+                                <select name="experimentid" id="experimentid">
+                                    <option value="FreeLiving">FreeLiving</option>
+                                    <option value="Threadmill">Threadmill</option>
+                                </select>
+                    </div>
+                    <div class = 'col'> <br><br>
+                        <button id = "submit" class="btn-primary ">Upload</button><br>
+                    </div>
+                </div>
+            </form>
+       <br>
+
+        {% block messages %}
+            {% if messages %}
+                <div class = 'container' style="">
+            {% for message in messages %}
+                {{ message  }}
+            {% endfor %}
+            {% endif %}
+        {% endblock %}
+
+            </div>
+    </div>
+</div>
+</div>
 <script>
 function w3_open() {
   document.getElementById("mySidebar").style.display = "block";
@@ -36,6 +72,5 @@ function w3_close() {
   document.getElementById("myOverlay").style.display = "none";
 }
 </script>
-
 </body>
 </html>

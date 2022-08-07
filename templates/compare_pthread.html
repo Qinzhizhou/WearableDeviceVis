@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!DOCTYPE html>
+    <meta charset="utf-8" />
+    <!-- 引入刚刚下载的 ECharts 文件 -->
+     <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/style.css' %}">
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .main{
+            width: 90%;
+            height: 90%;
+            position: absolute;
+        }
+        .quarter-div{
+            width: 50%;
+            height: 50%;
+            float: left;
+        }
+        .blue{
+            background-color: #5BC0DE;
+        }
+        .green{
+            background-color: #5CB85C;
+        }
+        .orange{
+            background-color: #F0AD4E;
+        }
+        .yellow{
+            background-color: #FFC706;
+        }
+    </style>
+    <title>Dashboard Results</title>
+
+</head>
+<body>
+<p> The type of experiment is freeliving data </p><button class="btn"> <a href="{% url 'index' %}"> GO BACK</a></button>
+
+<form method="POST" action = "{% url 'renew_com_pread' %}">
+    {% csrf_token %}
+    Select the day of experiment:
+    <select name="typeid">
+    <option value="Heart Rate">Heart Rate</option>
+    <option value='Steps'>Step 1</option>
+    <option value="Steps2">Step 2</option>
+    <option value='Calories'>Calories 1</option>
+    <option value="Calories2">Calories 2</option>
+
+    </select>
+<input type="submit" value="click">
+</form>
+
+<div class="main">
+        <div id = 'chart1' class="quarter-div blue"></div>
+        <div id = 'chart2' class="quarter-div green"></div>
+        <div id = 'chart3' class="quarter-div orange"></div>
+        <div id = 'chart4' class="quarter-div yellow"></div>
+</div>
+
+<!-- how to seperate js file in to static file? <script type= 'text/javascript' src="{% static '/js/freeliving.js' %}"></script>-->
+
+<script>
+    var chartDom = document.getElementById('chart1');
+    var myChart = echarts.init(chartDom);
+    var option;
+    option = {
+        color: ['#FF0087', '#00DDFF', '#37A2FF', '#80FFA5'],
+        dataZoom: [
+    {
+      type: 'inside',
+      start: 0,
+      end: 100
+    }, {
+      start: 0,
+      end: 100
+    }
+  ],
+
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  legend: {
+    data:  ['GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge']
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '10%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: {{ timelines|safe }},
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
+  series: [
+    {
+      name: 'GT',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(255, 0, 135)'
+          },
+          {
+            offset: 0.6,
+            color: 'rgb(135, 0, 157)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vA|safe }}
+    },
+    {
+      name: 'Fitbit Charge HR',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(0, 221, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(77, 119, 255)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vB|safe }}
+    },
+    {
+      name:  'Fitbit Charge 2',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(55, 162, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(116, 21, 219)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vC|safe }}
+    },
+    {
+      name: 'Fitbit Surge',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.2,
+           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0.5,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data:  {{ vD|safe }}
+    }
+  ]
+};
+
+option && myChart.setOption(option);
+</script>
+<script>
+    var chartDom = document.getElementById('chart2');
+    var myChart = echarts.init(chartDom);
+    var option;
+    option = {
+        color: ['#FF0087', '#00DDFF', '#37A2FF', '#80FFA5'],
+        dataZoom: [
+    {
+      type: 'inside',
+      start: 0,
+      end: 100
+    }, {
+      start: 0,
+      end: 100
+    }
+  ],
+
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  legend: {
+    data:  ['GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge']
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '10%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: {{ timelines|safe }},
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
+  series: [
+    {
+      name: 'GT',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(255, 0, 135)'
+          },
+          {
+            offset: 0.6,
+            color: 'rgb(135, 0, 157)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vE|safe }}
+    },
+    {
+      name: 'Fitbit Charge HR',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(0, 221, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(77, 119, 255)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vF|safe }}
+    },
+    {
+      name:  'Fitbit Charge 2',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(55, 162, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(116, 21, 219)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vG|safe }}
+    },
+    {
+      name: 'Fitbit Surge',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.2,
+           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0.5,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data:  {{ vH|safe }}
+    }
+  ]
+};
+
+option && myChart.setOption(option);
+</script>
+<script>
+    var chartDom = document.getElementById('chart3');
+    var myChart = echarts.init(chartDom);
+    var option;
+    option = {
+        color: ['#FF0087', '#00DDFF', '#37A2FF', '#80FFA5'],
+        dataZoom: [
+    {
+      type: 'inside',
+      start: 0,
+      end: 100
+    }, {
+      start: 0,
+      end: 100
+    }
+  ],
+
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  legend: {
+    data:  ['GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge']
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '10%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: {{ timelines|safe }},
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
+  series: [
+    {
+      name: 'GT',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(255, 0, 135)'
+          },
+          {
+            offset: 0.6,
+            color: 'rgb(135, 0, 157)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vI|safe }}
+    },
+    {
+      name: 'Fitbit Charge HR',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(0, 221, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(77, 119, 255)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vJ|safe }}
+    },
+    {
+      name:  'Fitbit Charge 2',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(55, 162, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(116, 21, 219)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vK|safe }}
+    },
+    {
+      name: 'Fitbit Surge',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.2,
+           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0.5,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data:  {{ vL|safe }}
+    }
+  ]
+};
+
+option && myChart.setOption(option);
+</script>
+
+<script>
+    var chartDom = document.getElementById('chart4');
+    var myChart = echarts.init(chartDom);
+    var option;
+    option = {
+        color: ['#FF0087', '#00DDFF', '#37A2FF', '#80FFA5'],
+        dataZoom: [
+    {
+      type: 'inside',
+      start: 0,
+      end: 100
+    }, {
+      start: 0,
+      end: 100
+    }
+  ],
+
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  legend: {
+    data:  ['GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge']
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '10%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: {{ timelines|safe }},
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
+  series: [
+    {
+      name: 'GT',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(255, 0, 135)'
+          },
+          {
+            offset: 0.6,
+            color: 'rgb(135, 0, 157)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vM|safe }}
+    },
+    {
+      name: 'Fitbit Charge HR',
+      type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(0, 221, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(77, 119, 255)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vN|safe }}
+    },
+    {
+      name:  'Fitbit Charge 2',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.3,
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(55, 162, 255)'
+          },
+          {
+            offset: 0.5,
+            color: 'rgb(116, 21, 219)'
+          }
+        ])
+      },
+      emphasis: {
+        focus: 'series'
+      },
+      data: {{ vO|safe }}
+    },
+    {
+      name: 'Fitbit Surge',
+      type: 'line',
+
+      smooth: true,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      areaStyle: {
+        opacity: 0.2,
+           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0.5,
+            color: 'rgb(128, 255, 165)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(1, 191, 236)'
+          }
+        ])
+      },
+
+      emphasis: {
+        focus: 'series'
+      },
+      data:  {{ vP|safe }}
+    }
+  ]
+};
+
+option && myChart.setOption(option);
+</script>
+</script>
+</body>
+</html>
+

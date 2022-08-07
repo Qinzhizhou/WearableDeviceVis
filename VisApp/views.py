@@ -46,7 +46,7 @@ def upload(request):
             pread_living(file_directory, request)
             return redirect(results_thread)
         else:
-            messages.warning(request, 'File was not uploaded, please use csv file!')
+            messages.warning(request, 'File was not uploaded, please use xlsx file!')
     return render(request, "upload.html", context)
 
 
@@ -68,7 +68,8 @@ def readfree_living(filename, request):
     rows = len(data.axes[0])
     cols = len(data.axes[1])
     # find missing data
-    missingvalue = ['', '?']
+    missingvalue = ['', '?', '0', '-']
+
     null_data = data[data.isnull().any(axis=1)]  # find the missing data
     missing_values = len(null_data)
 
@@ -84,6 +85,7 @@ def results_living(request):
     message = 'I found ' + str(rows) + ' and columns ' + str(cols) + ' columns, Missing data are: ' + str(missing_values)
     messages.warning(request, message)
     keys = data.Time
+    print("keys ",keys)
     valuesA = data.A
     timelines = []
     vA, vB, vC, vD, vE   = addY(data.A),  addY(data.B),  addY(data.C),  addY(data.D),  addY(data.E)
@@ -115,19 +117,15 @@ def results_thread(request):
     message = ''
     message = 'I found ' + str(rows) + ' and columns ' + str(cols) + ' columns, Missing data are: ' + str(missing_values)
     messages.warning(request, message)
-
     data.fillna(0)
-
-
     keys = data.iloc[:, 0]
-
     timelines = []
     vA, vB, vC, vD = addY(data.GT),  addY(data['Fitbit Charge HR']),  addY(data['Fitbit Charge 2']),  addY(data['Fitbit Surge'])
     nA = normalize_list(vA)
     nB = normalize_list(vB)
     nC = normalize_list(vC)
     nD = normalize_list(vD)
-    print(nA)
+
     for x in keys:
         timelines.append(str(x))
 
@@ -160,6 +158,7 @@ def normalize_list(list):
 def renew(request):
     global rows, cols, data, my_file, missing_values
     context = {}
+
     my_file = pd.ExcelFile(file_directory)
     day = request.POST.get("dayid", None)
     if day == None:
@@ -216,7 +215,7 @@ def pread_living(filename, request):
     # Print the sheet names
     data = my_file.parse("Heart Rate",  header = 1)
     data = data.fillna(0)
-    print(data)
+
     # row and colomn
     rows = len(data.axes[0])
     cols = len(data.axes[1])
@@ -232,7 +231,7 @@ def renew_pread(request):
 
     if type == None:
         print("dafault type set as Heart Rate")
-        type ='day1'
+        type ='Heart Rate'
     print("type:", type)
 
     # Read the excel file and thransform them is pd.data frame
@@ -282,4 +281,319 @@ def dashboard(request):
     return render(request, "dashboard.html")
 
 def compare(request):
+    # render function takes argument  - request
+    # and return HTML as response
+    global uploaded_files, file_directory_list, experimentid
+    file_type = ""
+    context = {}
+
+    if request.method == "POST":
+        uploaded_files = []
+        for file_id, file in enumerate(request.FILES.getlist("files")):
+            uploaded_files.append(file)
+        experimentid = request.POST.get('experimentid')
+        length_list = []
+
+        if len(uploaded_files) <= 4 and experimentid == "FreeLiving":
+            data = pd.DataFrame(columns=['Time', 'A', 'B', 'C', 'D', 'E'])
+            file_directory_list = []
+            for i in uploaded_files:
+                    file_directory = readfile(i)  # read the i th file
+                    file_directory_list.append(file_directory)
+            for directory in file_directory_list:
+                if i.name.endswith('.xlsx'):
+                    length_list.append(len(read_com_free(directory, request)))
+                    data = pd.concat([data, read_com_free(directory, request)], ignore_index=True)
+            while len(length_list) < 4:
+                length_list.append(0)
+
+            l1 = length_list[0]
+            l2 = length_list[0] + length_list[1]
+            l3 = length_list[0] + length_list[1] + length_list[2]
+            l4 = length_list[0] + length_list[1] + length_list[2] + length_list[3]
+
+            timelines = addY(data[:, 0])
+
+            vA, vB, vC, vD, vE = addY(data.iloc[:l1].A), addY(data.iloc[:l1].B), addY(
+                data.iloc[:l1].C), addY(data.iloc[:l1].D), addY(data.iloc[:l1].E)
+            vF, vG, vH, vI, vJ = addY(data.iloc[l1:l2].A), addY(data.iloc[l1:l2].B), addY(
+                data.iloc[l1:l2].C), addY(data.iloc[l1:l2].D), addY(data.iloc[l1:l2].E)
+            vK, vL, vM, vN, vO = addY(data.iloc[l2:l3].A), addY(data.iloc[l2:l3].B), addY(
+                data.iloc[l2:l3].C), addY(data.iloc[l2:l3].D), addY(data.iloc[l2:l3].E)
+            vP, vQ, vR, vS, vT = addY(data.iloc[l3:l4].A), addY(data.iloc[l3:l4].B), addY(
+                data.iloc[l3:l4].C), addY(data.iloc[l3:l4].D), addY(data.iloc[l3:l4].E)
+
+            context = {
+                'timelines': timelines,
+                'vA': vA,
+                'vB': vB,
+                'vC': vC,
+                'vD': vD,
+                'vE': vE,
+                'vF': vF,
+                'vG':vG,
+                'vH':vH,
+                'vI':vI,
+                'vJ': vJ,
+                'vK': vK,
+                'vL': vL,
+                'vM': vM,
+                'vN': vN,
+                'vO': vO,
+                'vP': vP,
+                'vQ': vQ,
+                'vR': vR,
+                'vS': vS,
+                'vT': vT
+            }
+            print("loading compare image")
+            return render(request, "compare_freeliving.html", context)
+        elif len(uploaded_files) <= 4 and experimentid == "Threadmill":
+            data = pd.DataFrame(columns=['Time Count(Every 10 seconds)', 'GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge'])
+            file_directory_list = []
+            for i in uploaded_files:
+                file_directory = readfile(i)  # read the i th file
+                file_directory_list.append(file_directory)
+            for directory in file_directory_list:
+                if i.name.endswith('.xlsx'):
+                    length_list.append(len(read_com_threa(directory, request)))
+                    data = pd.concat([data, read_com_threa(directory, request)], ignore_index=True)
+            while len(length_list) < 4:
+                length_list.append(0)
+            print(length_list)
+
+            while len(length_list) < 4:
+                length_list.append(0)
+            keys = data.iloc[:181]['Time Count(Every 10 seconds)']
+            timelines = []
+
+            for x in keys:
+                timelines.append(str(x))
+
+            l1 = length_list[0]
+            l2 = length_list[0] + length_list[1]
+            l3 = length_list[0] + length_list[1] + length_list[2]
+            l4 = length_list[0] + length_list[1] + length_list[2] + length_list[3]
+
+            vA, vB, vC, vD = addY(data.iloc[:l1].GT), addY(data.iloc[:l1]['Fitbit Charge HR']), addY(data.iloc[:l1]['Fitbit Charge 2']), addY(
+                data.iloc[:l1]['Fitbit Surge'])
+            vE, vF, vG, vH = addY(data.iloc[l1:l2].GT), addY(data.iloc[l1:l2]['Fitbit Charge HR']), addY(data.iloc[l1:l2]['Fitbit Charge 2']), addY(
+                data.iloc[l1:l2]['Fitbit Surge'])
+            vI, vJ, vK, vL = addY(data.iloc[l2:l3].GT), addY(data.iloc[l2:l3]['Fitbit Charge HR']), addY(
+                data.iloc[l2:l3]['Fitbit Charge 2']), addY(data.iloc[l2:l3]['Fitbit Surge'])
+            vM, vN, vO, vP = addY(data.iloc[l3:l4].GT), addY(data.iloc[l3:l4]['Fitbit Charge HR']), addY(
+                data.iloc[l3:l4]['Fitbit Charge 2']), addY(data.iloc[l3:l4]['Fitbit Surge'])
+            context = {
+                'timelines': timelines,
+                'vA': vA,
+                'vB': vB,
+                'vC': vC,
+                'vD': vD,
+
+                'vE': vE,
+                'vF': vF,
+                'vG': vG,
+                'vH': vH,
+
+                'vI': vI,
+                'vJ': vJ,
+                'vK': vK,
+                'vL': vL,
+
+                'vM': vM,
+                'vN': vN,
+                'vO': vO,
+                'vP': vP
+            }
+            print("loading compare image")
+            return render(request, "compare_pthread.html", context)
+
+
+        else:
+            messages.warning(request, 'You uploaded too much files!')
     return render(request, "compare.html")
+
+
+def read_com_free(directory, request):
+    global rows, cols, data, my_file, missing_values
+    day = request.POST.get("dayid", None)
+    if day == None:
+        print("dafault day set as day1")
+        day = 'day1'
+    print("the day set as :", day)
+    my_file = pd.ExcelFile(directory)
+    data = my_file.parse(day, header=None, names=['Time', 'A', 'B', 'C', 'D', 'E'])
+    data['Time'] = pd.to_datetime(data['Time'])
+    # make the required change
+    without_date = data['Time'].apply(lambda d: d.time())
+    data['Time'] = without_date
+    null_data = data[data.isnull().any(axis=1)]  # find the missing data
+    missing_values = len(null_data)
+    return data
+
+def read_com_threa(directory, request):
+    global rows, cols, data, my_file, missing_values
+    # if file_type == 'csv':
+    type = request.POST.get("typeid", None)
+    my_file = pd.ExcelFile(directory)
+    if type == None:
+        print("dafault type set as Heart Rate")
+        type = 'Heart Rate'
+    # Print the sheet names
+    data = my_file.parse(type, header=1)
+    data = data.fillna(0)
+    # row and colomn
+    rows = len(data.axes[0])
+    cols = len(data.axes[1])
+    missingvalue = ['', '?']
+    null_data = data[data.isnull().any(axis=1)]  # find the missing data
+    missing_values = len(null_data)
+    return data
+
+
+
+def renew_com_living(request):
+    context = {}
+    day = request.POST.get("dayid", None)
+    if day == None:
+        day ='day1'
+    print("the day set as: ", day)
+    print("file directory list: ", file_directory_list)
+
+    length_list = []
+    data = pd.DataFrame(columns=['Time', 'A', 'B', 'C', 'D', 'E'])
+
+    for directory in file_directory_list:
+        print('The directory: ', directory)
+        length_list.append(len(read_com_free(directory, request)))
+        data = pd.concat([data, read_com_free(directory, request)], ignore_index=True)
+
+
+    while len(length_list) < 4:
+        length_list.append(0)
+
+    print(length_list)
+
+    keys = data.iloc[:920].Time
+    timelines = []
+
+    l1 = length_list[0]
+    l2 = length_list[0] + length_list[1]
+    l3 = length_list[0] + length_list[1] + length_list[2]
+    l4 = length_list[0] + length_list[1] + length_list[2] + length_list[3]
+
+    print(l1, l2, l3,l4)
+
+
+    vA, vB, vC, vD, vE = addY(data.iloc[:l1].A), addY(data.iloc[:l1].B), addY(
+            data.iloc[:l1].C), addY(data.iloc[:l1].D), addY(data.iloc[:l1].E)
+    vF, vG, vH, vI, vJ = addY(data.iloc[l1:l2].A), addY(data.iloc[l1:l2].B), addY(
+            data.iloc[l1:l2].C), addY(data.iloc[l1:l2].D), addY(data.iloc[l1:l2].E)
+    vK, vL, vM, vN, vO = addY(data.iloc[l2:l3].A), addY(data.iloc[l2:l3].B), addY(
+            data.iloc[l2:l3].C), addY(data.iloc[l2:l3].D), addY(data.iloc[l2:l3].E)
+    vP, vQ, vR, vS, vT = addY(data.iloc[l3:l4].A), addY(data.iloc[l3:l4].B), addY(
+            data.iloc[l3:l4].C), addY(data.iloc[l3:l4].D), addY(data.iloc[l3:l4].E)
+
+    for x in keys:
+        timelines.append(str(x))
+    context = {
+                'timelines': timelines,
+                'vA': vA,
+                'vB': vB,
+                'vC': vC,
+                'vD': vD,
+                'vE': vE,
+                'vF': vF,
+                'vG':vG,
+                'vH':vH,
+                'vI':vI,
+                'vJ': vJ,
+                'vK': vK,
+                'vL': vL,
+                'vM': vM,
+                'vN': vN,
+                'vO': vO,
+                'vP': vP,
+                'vQ': vQ,
+                'vR': vR,
+                'vS': vS,
+                'vT': vT
+            }
+
+    print("loading compare image")
+
+    return render(request, "compare_freeliving.html", context)
+
+def renew_com_pread(request):
+    context = {}
+    type = request.POST.get("typeid", None)
+    if type == None:
+        print("dafault type set as Heart Rate")
+        type = 'Heart Rate'
+    print("type:", type)
+    length_list = []
+    if type == 'Heart Rate':
+        data = pd.DataFrame(columns=['Time Count(Every 10 seconds)', 'GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge'])
+    else:
+        data = pd.DataFrame(
+            columns=['Time Count(Every 60 seconds)', 'GT', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge'])
+    for directory in file_directory_list:
+        print('The directory: ', directory)
+        length_list.append(len(read_com_threa(directory, request)))
+        print(read_com_threa(directory, request))
+        data = pd.concat([data, read_com_threa(directory, request)], ignore_index=True)
+    while len(length_list) < 4:
+        length_list.append(0)
+
+    while len(length_list) < 4:
+        length_list.append(0)
+
+    l1 = length_list[0]
+    l2 = length_list[0] + length_list[1]
+    l3 = length_list[0] + length_list[1] + length_list[2]
+    l4 = length_list[0] + length_list[1] + length_list[2] + length_list[3]
+
+    if type == 'Heart Rate':
+        keys = data.iloc[:181]['Time Count(Every 10 seconds)']
+    else:
+        #keys = data.iloc[:181]['Time Count(Every 60 seconds)']
+        keys = data.iloc[:, 0][:30]
+    timelines = []
+    for x in keys:
+        timelines.append(str(x))
+    print(timelines)
+    vA, vB, vC, vD = addY(data.iloc[:l1].GT), addY(data.iloc[:l1]['Fitbit Charge HR']), addY(
+        data.iloc[:l1]['Fitbit Charge 2']), addY(data.iloc[:l1]['Fitbit Surge'])
+    vE, vF, vG, vH = addY(data.iloc[l1:l2].GT), addY(data.iloc[l1:l2]['Fitbit Charge HR']), addY(
+        data.iloc[l1:l2]['Fitbit Charge 2']), addY(data.iloc[l1:l2]['Fitbit Surge'])
+    vI, vJ, vK, vL = addY(data.iloc[l2:l3].GT), addY(data.iloc[l2:l3]['Fitbit Charge HR']), addY(
+        data.iloc[l2:l3]['Fitbit Charge 2']), addY(data.iloc[l2:l3]['Fitbit Surge'])
+    vM, vN, vO, vP = addY(data.iloc[l3:l4].GT), addY(data.iloc[l3:l4]['Fitbit Charge HR']), addY(
+        data.iloc[l3:l4]['Fitbit Charge 2']), addY(data.iloc[l3:l4]['Fitbit Surge'])
+    print('vM:', vM)
+
+    context = {
+        'timelines': timelines,
+        'vA': vA,
+        'vB': vB,
+        'vC': vC,
+        'vD': vD,
+        'vE': vE,
+        'vF': vF,
+        'vG': vG,
+        'vH': vH,
+        'vI': vI,
+        'vJ': vJ,
+        'vK': vK,
+        'vL': vL,
+         'vM': vM,
+        'vN': vN,
+        'vO': vO,
+        'vP': vP
+    }
+    print("loading compare image")
+    return render(request, "compare_pthread.html", context)
+
+
+
+

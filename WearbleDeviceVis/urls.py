@@ -27,5 +27,9 @@ urlpatterns = [
     path('renew', views.renew, name = 'renew'),
     path('renew_pread', views.renew_pread, name='renew_pread'),
     path('dashboard', views.dashboard, name='dashboard'),
-    path('compare', views.compare, name = 'compare')
+    path('compare', views.compare, name = 'compare'),
+    path('renew_com_pread', views.renew_com_pread, name = 'renew_com_pread'),
+    # path('compare_freeliving', views.compare_freeliving, name = 'renew_com_pread'),
+    path('results_threadmill', views.results_thread, name = 'results_thread'),
+    path('renew_com_living', views.renew_com_living, name = 'renew_com_living')
 ]

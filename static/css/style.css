@@ -52,3 +52,11 @@
   border: 3px solid #8AC007;
 
 }
+
+#area-chart,
+#line-chart,
+#bar-chart,
+#stacked,
+#pie-chart{
+  min-height: 250px;
+}
