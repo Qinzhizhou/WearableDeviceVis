@@ -9,3 +9,6 @@ It includes the information visulaization, comparation for multiple experiment, 
 ## Implementation/操作
 Upload the file and select experiment type/上传文件并选择实验类型
 ![image](https://github.com/Qinzhizhou/WearableDeviceVis/blob/main/img/upload.PNG)
+
+## Results
+![image](https://github.com/Qinzhizhou/WearableDeviceVis/blob/main/img/single.PNG)
