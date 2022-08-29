@@ -7,6 +7,8 @@ import numpy as np
 from scipy import stats
 import scipy.stats as st
 from django.utils.safestring import mark_safe
+from datetime import datetime
+
 # Create your views here.
 def index(request):
     return render(request, "index.html")
@@ -28,7 +30,7 @@ def readfile(uploaded_file):  #, experimentid):
 def upload(request):
     # render function takes argument  - request
     # and return HTML as response
-    global attribute, file_type, file_directory
+    global attribute, file_type, file_directory, uploaded_file
     file_type = ""
     context = {}
     if request.method == "POST":
@@ -81,13 +83,27 @@ def readfree_living(filename, request):
 
 
 def pread_living(filename, request):
-    global rows, cols, data, my_file, missing_values
+    global rows, cols, data, my_file, missing_values, typeid,the_id
     #if file_type == 'csv':
     my_file = pd.ExcelFile(filename)
     # Print the sheet names
-    data = my_file.parse("Heart Rate",  header = 1)
-    data = data.fillna(0)
+    typeid = request.POST.get("typeid", None)
+    the_id = int()
+    if typeid == None or typeid == 'Heart Rate' :
+        print("First read dafault type set as Heart Rate")
+        typeid = 'Heart Rate'
+        the_id = 1
+    else:
+        the_id = 2
+    print("type:", typeid)
+    data = my_file.parse(typeid,  header = 1)
 
+    if typeid == 'Heart Rate' :
+        data['Time Count(Every 10 seconds)'] = pd.to_datetime(data['Time Count(Every 10 seconds)'])
+    print(data)
+
+
+    data = data.fillna(0)
     # row and colomn
     rows = len(data.axes[0])
     cols = len(data.axes[1])
@@ -119,7 +135,7 @@ def rank(list_of_list):
     return sorted_res
 
 def get_best_distribution(thedata):
-    dist_names = ["norm", "exponweib", "weibull_max", "weibull_min", "pareto", "genextreme"]
+    dist_names = ["norm", "exponweib", 'gamma', "pareto", "genextreme"]
     dist_results = []
     params = {}
 
@@ -131,20 +147,16 @@ def get_best_distribution(thedata):
 
             # Applying the Kolmogorov-Smirnov test
             D, p = st.kstest(thedata, dist_name, args=param)
-            print("p value for "+dist_name+" = "+str(p))
             dist_results.append((dist_name, p))
 
         # select the best fitted distribution
         best_dist, best_p = (max(dist_results, key=lambda item: item[1]))
         # store the name of the best fit and its p value
 
-        print("Best fitting distribution: "+str(best_dist))
-        print("Best p value: "+ str(best_p))
-        print("Parameters for the best fit: "+ str(params[best_dist]))
 
         return [best_dist, best_p, params[best_dist]]
     except:
-        return ['Not avaliable', "not avaliable", 'not avaliable']
+        return [' Not avaliable', " Not avaliable", ' Not avaliable']
 
 def results_living(request):
     keys = data.Time
@@ -170,7 +182,8 @@ def results_living(request):
 
 
 
-    message = 'The Rank of average value from low to high: ' + str(name_list[the_rank[0]])+ ' < ' \
+    message = 'The experiment was analyized： ' + str(my_file) + str(uploaded_file) +\
+        '<br/>The Rank of average value from low to high: ' + str(name_list[the_rank[0]])+ ' < ' \
               + str(name_list[the_rank[1]]) + ' < ' + str(name_list[the_rank[2]]) + ' < ' \
               + str(name_list[the_rank[3]]) + ' < ' + str(name_list[the_rank[4]]) + \
               '<br/>The experiment are fully missed data: ' + str(o_list) +\
@@ -197,6 +210,7 @@ def results_living(request):
     'nD': nD,
     'nE': nE,
     }
+
     print("loading image")
     return render(request, "results_freeliving.html", context)
 
@@ -205,6 +219,7 @@ def results_thread(request):
     data.fillna(0)
     keys = data.iloc[:, 0]
     timelines = []
+    midtime = datetime.strptime('2017-12-13  23:59:00', "%Y-%m-%d  %H:%M:%S")
     vA, vB, vC, vD = addY(data.GT),  addY(data['Fitbit Charge HR']),  addY(data['Fitbit Charge 2']),  addY(data['Fitbit Surge'])
     nA = normalize_list(vA)
     nB = normalize_list(vB)
@@ -213,6 +228,10 @@ def results_thread(request):
 
     for x in keys:
         timelines.append(str(x))
+
+    timelines_heartrate_1 = [i for i in timelines if datetime.strptime(i, "%Y-%m-%d %H:%M:%S") < midtime]
+    timelines_heartrate_2 = [i for i in timelines if datetime.strptime(i, "%Y-%m-%d  %H:%M:%S") > midtime]
+    print(timelines_heartrate_1, timelines_heartrate_2)
 
     context = {
     'timelines': timelines,
@@ -224,7 +243,12 @@ def results_thread(request):
     'nB': nB,
     'nC': nC,
     'nD': nD,
+    'type': typeid,
+    'the_id': the_id,
+    't1':timelines_heartrate_1,
+    't2':timelines_heartrate_2,
     }
+
     list_res = [vA, vB, vC, vD]
     name_list = ['GT(True Value)', 'Fitbit Charge HR', 'Fitbit Charge 2', 'Fitbit Surge']
     order_res = rank(list_res)
@@ -300,8 +324,6 @@ def renew(request):
     nD = normalize_list(vD)
     for x in keys:
         timelines.append(str(x))
-
-
     context = {
         'timelines': timelines,
         'vA': vA,
@@ -355,15 +377,17 @@ def renew_pread(request):
     global rows, cols, data, my_file, missing_values
     context = {}
     my_file = pd.ExcelFile(file_directory)
-    type = request.POST.get("typeid", None)
-
-    if type == None:
-        print("dafault type set as Heart Rate")
-        type ='Heart Rate'
-    print("type:", type)
+    typeid = request.POST.get("typeid", None)
+    if typeid == None or typeid == 'Heart Rate':
+        print("default type set as Heart Rate")
+        typeid ='Heart Rate'
+        the_id = 1
+    else:
+        the_id = 2
+        print(the_id)
 
     # Read the excel file and thransform them is pd.data frame
-    data = my_file.parse(type, header=1)
+    data = my_file.parse(typeid, header=1)
     data = data.fillna(0)
     #row and colomn
     rows = len(data.axes[0])
@@ -384,7 +408,12 @@ def renew_pread(request):
 
     for x in keys:
         timelines.append(str(x))
-
+    if the_id == 1:
+        midtime = datetime.strptime('2017-12-13  23:59:00', "%Y-%m-%d  %H:%M:%S")
+        timelines_heartrate_1 = [i for i in timelines if datetime.strptime(i, "%Y-%m-%d %H:%M:%S") < midtime]
+        timelines_heartrate_2 = [i for i in timelines if datetime.strptime(i, "%Y-%m-%d  %H:%M:%S") > midtime]
+    else:
+        timelines_heartrate_1, timelines_heartrate_2  = [], []
     context = {
         'timelines': timelines,
         'vA': vA,
@@ -395,6 +424,10 @@ def renew_pread(request):
         'nB': nB,
         'nC': nC,
         'nD': nD,
+        'type': typeid,
+        'the_id': the_id,
+        't1': timelines_heartrate_1,
+        't2': timelines_heartrate_2,
     }
 
     list_res = [vA, vB, vC, vD]
@@ -442,7 +475,6 @@ def compare(request):
             uploaded_files.append(file)
         experimentid = request.POST.get('experimentid')
         length_list = []
-
         if len(uploaded_files) <= 4 and experimentid == "FreeLiving":
             try:
                 data = pd.DataFrame(columns=['Time', 'A', 'B', 'C', 'D', 'E'])
@@ -462,7 +494,13 @@ def compare(request):
                 l3 = length_list[0] + length_list[1] + length_list[2]
                 l4 = length_list[0] + length_list[1] + length_list[2] + length_list[3]
 
-                timelines = addY(data[:, 0])
+                keys = data.Time[:l1]
+                timelines = []
+                for x in keys:
+                    timelines.append(str(x))
+                # timelines = addY(data[:, 0])
+
+
 
                 vA, vB, vC, vD, vE = addY(data.iloc[:l1].A), addY(data.iloc[:l1].B), addY(
                     data.iloc[:l1].C), addY(data.iloc[:l1].D), addY(data.iloc[:l1].E)
@@ -523,6 +561,7 @@ def compare(request):
                 for x in keys:
                     timelines.append(str(x))
 
+
                 l1 = length_list[0]
                 l2 = length_list[0] + length_list[1]
                 l3 = length_list[0] + length_list[1] + length_list[2]
@@ -542,17 +581,14 @@ def compare(request):
                     'vB': vB,
                     'vC': vC,
                     'vD': vD,
-
                     'vE': vE,
                     'vF': vF,
                     'vG': vG,
                     'vH': vH,
-
                     'vI': vI,
                     'vJ': vJ,
                     'vK': vK,
                     'vL': vL,
-
                     'vM': vM,
                     'vN': vN,
                     'vO': vO,
@@ -593,6 +629,7 @@ def read_com_threa(directory, request):
         type = 'Heart Rate'
     # Print the sheet names
     data = my_file.parse(type, header=1)
+
     data = data.fillna(0)
     # row and colomn
     rows = len(data.axes[0])
@@ -696,15 +733,12 @@ def renew_com_pread(request):
         data = pd.concat([data, read_com_threa(directory, request)], ignore_index=True)
     while len(length_list) < 4:
         length_list.append(0)
-
     while len(length_list) < 4:
         length_list.append(0)
-
     l1 = length_list[0]
     l2 = length_list[0] + length_list[1]
     l3 = length_list[0] + length_list[1] + length_list[2]
     l4 = length_list[0] + length_list[1] + length_list[2] + length_list[3]
-
     if type == 'Heart Rate':
         keys = data.iloc[:181]['Time Count(Every 10 seconds)']
     else:
@@ -722,27 +756,23 @@ def renew_com_pread(request):
         data.iloc[l2:l3]['Fitbit Charge 2']), addY(data.iloc[l2:l3]['Fitbit Surge'])
     vM, vN, vO, vP = addY(data.iloc[l3:l4].GT), addY(data.iloc[l3:l4]['Fitbit Charge HR']), addY(
         data.iloc[l3:l4]['Fitbit Charge 2']), addY(data.iloc[l3:l4]['Fitbit Surge'])
-    print('vM:', vM)
-
-    context = {
-        'timelines': timelines,
-        'vA': vA,
-        'vB': vB,
-        'vC': vC,
-        'vD': vD,
-        'vE': vE,
-        'vF': vF,
-        'vG': vG,
-        'vH': vH,
-        'vI': vI,
-        'vJ': vJ,
-        'vK': vK,
-        'vL': vL,
-        'vM': vM,
-        'vN': vN,
-        'vO': vO,
-        'vP': vP
-    }
+    context = {'timelines': timelines,
+                'vA': vA,
+                'vB': vB,
+                'vC': vC,
+                'vD': vD,
+                'vE': vE,
+                'vF': vF,
+                'vG': vG,
+                'vH': vH,
+                'vI': vI,
+                'vJ': vJ,
+                'vK': vK,
+                'vL': vL,
+                'vM': vM,
+                'vN': vN,
+                'vO': vO,
+                'vP': vP }
     print("loading compare image")
     return render(request, "compare_pthread.html", context)
 

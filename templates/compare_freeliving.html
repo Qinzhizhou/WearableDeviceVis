@@ -23,18 +23,7 @@
             height: 50%;
             float: left;
         }
-        .blue{
-            background-color: #5BC0DE;
-        }
-        .green{
-            background-color: #5CB85C;
-        }
-        .orange{
-            background-color: #F0AD4E;
-        }
-        .yellow{
-            background-color: #FFC706;
-        }
+
     </style>
     <title>Dashboard Results</title>
 
@@ -71,6 +60,7 @@
 var chartDom = document.getElementById('chart1');
     var myChart = echarts.init(chartDom);
     var option;
+    var times = {{ timelines|safe }}
 
     option = {
         color: ['#80FFA5', '#00DDFF', '#37A2FF', '#FF0087', '#FFBF00'],

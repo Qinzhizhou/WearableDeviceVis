@@ -4,8 +4,9 @@
   height: 30rem;
   max-height: 1920px;
   margin: 0 auto;
-  padding: 0.125rem 0.125rem 0;
-  background-color: pink;
+  padding: 0.025rem 0.025rem 0;
+  background-color: azure;
+  border-style:outset;
 }
 
 .dashboard {
@@ -15,24 +16,20 @@
   max-height: 1920px;
   margin: 0 auto;
   padding: 0.125rem 0.125rem 0;
-  background-color: pink;
 }
 
 
 .leftside {
-  background-color: yellow;
   width: 50%;
-  height:400px;
+  height:450px;
 }
 
 .rightside  {
-  background-color: lavender;
   width: 50%;
-  height:400px;
+  height:480px;
 }
 
 .leftside_dash {
-  background-color: yellow;
   width: 50%;
   height:400px;
 }
